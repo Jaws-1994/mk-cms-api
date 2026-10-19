@@ -6,17 +6,20 @@ export default defineEventHandler(async (event) => {
 
   const { pseudo, mail, password } = body;
 
+  // si pas de données -> erreur
   if (!pseudo || !mail || !password) {
     throw createError({ statusCode: 400, statusMessage: 'Données manquantes' });
   }
 
+  // si mdp < 4 char -> erreur
   if (password.length < 4) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Le mot de passe doit contenir au moins 6 caractères',
+      statusMessage: 'Le mot de passe doit contenir au moins 4 caractères',
     })
   }
 
+  // récip param de la DB
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
@@ -36,7 +39,6 @@ export default defineEventHandler(async (event) => {
       `,
       [pseudo]
     )
-
     if (existingPseudo.length > 0) {
       throw createError({
         statusCode: 409,
@@ -54,7 +56,6 @@ export default defineEventHandler(async (event) => {
       `,
       [mail]
     )
-
     if (existingMail.length > 0) {
       throw createError({
         statusCode: 409,
