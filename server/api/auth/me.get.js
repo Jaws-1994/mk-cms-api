@@ -1,29 +1,8 @@
 import mysql from 'mysql2/promise'
-import jwt from 'jsonwebtoken'
+import { getAuthenticatedUser } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const authorization = getHeader(event, 'authorization')
-
-  if (!authorization || !authorization.startsWith('Bearer ')) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Token manquant',
-    })
-  }
-
-  const token = authorization.slice(7)
-
-  let decoded
-
-  try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET)
-  }
-  catch {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Token invalide ou expiré',
-    })
-  }
+  const decoded = getAuthenticatedUser(event)
 
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -39,6 +18,7 @@ export default defineEventHandler(async (event) => {
         SELECT
           ID_user,
           user_pseudo,
+          user_mail,
           user_score,
           user_role,
           user_avatar_color,
@@ -63,6 +43,7 @@ export default defineEventHandler(async (event) => {
     return {
       ID_user: user.ID_user,
       user_pseudo: user.user_pseudo,
+      user_mail: user.user_mail,
       user_score: user.user_score,
       user_role: user.user_role,
       user_avatar_color: user.user_avatar_color,
