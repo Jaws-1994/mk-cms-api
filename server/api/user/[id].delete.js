@@ -1,0 +1,50 @@
+import mysql from 'mysql2/promise'
+import { getAuthenticatedUser } from '../../utils/auth'
+
+export default defineEventHandler(async (event) => {
+  const authenticatedUser = getAuthenticatedUser(event)
+  const id = Number(getRouterParam(event, 'id'))
+
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Identifiant invalide',
+    })
+  }
+
+  if (id !== authenticatedUser.id) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Vous pouvez uniquement supprimer votre compte',
+    })
+  }
+
+  const connection = await mysql.createConnection({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+  })
+
+  try {
+    const [result] = await connection.query(
+      'DELETE FROM users WHERE ID_user = ?',
+      [id]
+    )
+
+    if (result.affectedRows === 0) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'Utilisateur introuvable',
+      })
+    }
+
+    return {
+      success: true,
+      message: 'Compte supprimé',
+    }
+  } finally {
+    await connection.end()
+  }
+})
