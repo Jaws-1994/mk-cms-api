@@ -4,7 +4,8 @@ import { getAuthenticatedUser } from '../../utils/auth'
 
 const QUESTION_COUNT = 10
 const QUESTION_TIME_LIMIT_MS = 30000
-const POINTS_PER_ANSWER = 10
+const POINTS_PER_ANSWER = 100
+const MAX_SPEED_BONUS = 25
 const GAME_DURATION_SECONDS = 3600
 
 const shuffle = (items) => {
@@ -211,9 +212,9 @@ export default defineEventHandler(async (event) => {
     await connection.query(
       `INSERT INTO game_sessions (
         game_id, ID_user, game_token_hash, game_ranked,
-        game_start, game_correction, game_points_per_answer,
+        game_start, game_correction, game_points_per_answer, game_speed_bonus_max,
         game_created_at, game_expires_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(),
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(),
         TIMESTAMPADD(SECOND, ?, UTC_TIMESTAMP()))`,
       [
         gameId,
@@ -223,6 +224,7 @@ export default defineEventHandler(async (event) => {
         JSON.stringify(game),
         JSON.stringify(correction),
         POINTS_PER_ANSWER,
+        MAX_SPEED_BONUS,
         GAME_DURATION_SECONDS,
       ]
     )
