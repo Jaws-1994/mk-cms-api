@@ -2,7 +2,7 @@ import mysql from 'mysql2/promise'
 import { requireAdmin } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
 
   const id = Number(getRouterParam(event, 'id'))
 

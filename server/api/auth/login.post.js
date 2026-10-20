@@ -23,11 +23,17 @@ export default defineEventHandler(async (event) => {
     // Seuls les champs nécessaires à la connexion sont lus. Le hash ne quitte
     // jamais le serveur et n'est utilisé que pour la comparaison bcrypt.
     const [users] = await connection.query(
-      `SELECT ID_user, user_pseudo, user_role, user_score, user_password_hash
-       FROM users
-       WHERE user_mail = ?`,
+      `SELECT
+        ID_user,
+        user_pseudo,
+        user_role,
+        user_score,
+        user_password_hash,
+        user_is_blocked
+      FROM users
+      WHERE user_mail = ?`,
       [mail]
-    );
+    )
 
     if (users.length === 0) {
       throw createError({
@@ -47,6 +53,13 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 401,
         statusMessage: 'Identifiants incorrects',
+      })
+    }
+
+    if (Number(user.user_is_blocked) === 1) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Ce compte est bloqué',
       })
     }
 
