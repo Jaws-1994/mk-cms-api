@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
         user_avatar_emotion,
         user_avatar_hat_id
       FROM users
-      ORDER BY ID_user DESC
+      ORDER BY user_pseudo ASC
     `)
 
     return { users }
