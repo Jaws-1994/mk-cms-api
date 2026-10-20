@@ -25,12 +25,33 @@ export const getAuthenticatedUser = (event) => {
   }
 }
 
-export const requireAdmin = (event) => {
-  const user = getAuthenticatedUser(event)
+// Reçoit l’utilisateur issu du token vérifié et la connexion déjà ouverte.
+export const requireCurrentAdmin = async (connection, authenticatedUser) => {
+  const userId = authenticatedUser?.id
 
-  // Le middleware de l'interface améliore l'expérience, mais ce contrôle
-  // serveur reste indispensable puisqu'une route API peut être appelée directement.
-  if (user.role !== 'admin') {
+  if (!Number.isSafeInteger(userId) || userId <= 0) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Session invalide',
+    })
+  }
+
+  // Consulte le rôle actuel, plutôt que celui mémorisé dans le token.
+  const [users] = await connection.query(
+    'SELECT ID_user, user_role FROM users WHERE ID_user = ? LIMIT 1',
+    [userId],
+  )
+
+  const user = users[0]
+
+  if (!user) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Session invalide',
+    })
+  }
+
+  if (user.user_role !== 'admin') {
     throw createError({
       statusCode: 403,
       statusMessage: 'Accès administrateur requis',

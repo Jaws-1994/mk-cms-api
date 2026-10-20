@@ -1,8 +1,9 @@
 import mysql from 'mysql2/promise'
-import { requireAdmin } from '../../../utils/auth'
+import { getAuthenticatedUser, requireCurrentAdmin } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  // Vérifie le token avant d’ouvrir la connexion.
+const authenticatedUser = getAuthenticatedUser(event)
 
   const id = Number(getRouterParam(event, 'id'))
 
@@ -22,6 +23,8 @@ export default defineEventHandler(async (event) => {
   })
 
   try {
+    // Autorise la suppression selon le compte et le rôle actuels en base.
+await requireCurrentAdmin(connection, authenticatedUser)
     const [result] = await connection.query(
       'DELETE FROM users WHERE ID_user = ?',
       [id]
