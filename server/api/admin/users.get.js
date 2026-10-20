@@ -23,11 +23,12 @@ await requireCurrentAdmin(connection, authenticatedUser)
         user_mail,
         user_score,
         user_role,
+        user_is_blocked,
         user_avatar_color,
         user_avatar_emotion,
         user_avatar_hat_id
       FROM users
-      ORDER BY ID_user DESC
+      ORDER BY user_pseudo ASC
     `)
 
     return { users }

@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
   const authorization = getHeader(event, 'authorization')
   const authenticatedUser = authorization === undefined
     ? null
-    : getAuthenticatedUser(event)
+    : await getAuthenticatedUser(event)
 
   if (
     authenticatedUser &&

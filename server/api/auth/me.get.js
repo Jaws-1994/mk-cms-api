@@ -2,7 +2,7 @@ import mysql from 'mysql2/promise'
 import { getAuthenticatedUser } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const decoded = getAuthenticatedUser(event)
+  const decoded = await getAuthenticatedUser(event)
 
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,

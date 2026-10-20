@@ -1,8 +1,7 @@
+import mysql from 'mysql2/promise'
 import jwt from 'jsonwebtoken'
 
-export const getAuthenticatedUser = (event) => {
-  // Chaque requête protégée vérifie le jeton : aucune donnée utilisateur n'est
-  // déduite d'un identifiant transmis par le navigateur.
+export const getAuthenticatedUser = async (event) => {
   const authorization = getHeader(event, 'authorization')
 
   if (!authorization || !authorization.startsWith('Bearer ')) {
@@ -13,15 +12,68 @@ export const getAuthenticatedUser = (event) => {
   }
 
   const token = authorization.slice(7)
+  let decoded
 
   try {
-    return jwt.verify(token, process.env.JWT_SECRET)
-  }
-  catch {
+    decoded = jwt.verify(token, process.env.JWT_SECRET)
+  } catch {
     throw createError({
       statusCode: 401,
       statusMessage: 'Token invalide ou expiré',
     })
+  }
+
+  if (!Number.isSafeInteger(decoded.id) || decoded.id <= 0) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Token invalide',
+    })
+  }
+
+  const connection = await mysql.createConnection({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+  })
+
+  try {
+    const [users] = await connection.query(
+      `SELECT
+        ID_user,
+        user_pseudo,
+        user_role,
+        user_is_blocked
+       FROM users
+       WHERE ID_user = ?
+       LIMIT 1`,
+      [decoded.id]
+    )
+
+    if (users.length === 0) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Compte introuvable',
+      })
+    }
+
+    const user = users[0]
+
+    if (Number(user.user_is_blocked) === 1) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Ce compte est bloqué',
+      })
+    }
+
+    return {
+      id: user.ID_user,
+      pseudo: user.user_pseudo,
+      role: user.user_role,
+    }
+  } finally {
+    await connection.end()
   }
 }
 

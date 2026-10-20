@@ -2,7 +2,7 @@ import mysql from 'mysql2/promise'
 import { getAuthenticatedUser } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const authenticatedUser = getAuthenticatedUser(event)
+  const authenticatedUser = await getAuthenticatedUser(event)
   const id = Number(getRouterParam(event, 'id'))
 
   if (!Number.isSafeInteger(id) || id <= 0) {
