@@ -1,75 +1,67 @@
-# Nuxt Minimal Starter
+# MK CMS API
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+API et application web de démarrage du projet MK CMS, développées avec Nuxt 4.
+Le serveur fournit actuellement des routes de test de connexion MySQL et
+d’authentification par jeton Bearer. L’interface Nuxt est encore minimale.
 
-## Setup
+## Prérequis
 
-Make sure to install dependencies:
+- Node.js et npm
+- Un serveur MySQL accessible
+- Une base de données possédant la table `users` attendue par les routes
+
+## Démarrage rapide
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+Copiez `.env-exemple` en `.env`, puis renseignez les paramètres de connexion à
+votre base de données et une clé secrète JWT. Ne publiez jamais votre fichier
+`.env`.
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+L’application est disponible à l’adresse indiquée par Nuxt, habituellement
+`http://localhost:3000`.
 
-Build the application for production:
+Consultez le [guide d’installation et de configuration](documentation/installation.md)
+pour les détails, la [référence de l’API](documentation/api.md) pour les routes,
+et le [guide de la base de données](documentation/base-de-donnees.md) pour le
+schéma attendu.
 
-```bash
-# npm
-npm run build
+## Scripts
 
-# pnpm
-pnpm build
+| Commande | Description |
+| --- | --- |
+| `npm run dev` | Lance le serveur de développement |
+| `npm run build` | Prépare la version de production |
+| `npm run preview` | Prévisualise la version de production |
+| `npm run generate` | Génère une version statique |
 
-# yarn
-yarn build
+## Structure du projet
 
-# bun
-bun run build
+```text
+app/                 Interface Nuxt (pages, composants et layouts)
+server/api/          Routes HTTP Nitro
+server/middleware/   Middleware du serveur (dont CORS)
+documentation/       Guides détaillés du projet
+.env-exemple         Modèle local de configuration
 ```
 
-Locally preview production build:
+## Documentation
 
-```bash
-# npm
-npm run preview
+- [Installation et configuration](documentation/installation.md)
+- [Routes API](documentation/api.md)
+- [Base de données](documentation/base-de-donnees.md)
 
-# pnpm
-pnpm preview
+## Sécurité
 
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+- Le fichier `.env` contient des secrets et ne doit pas être commité.
+- Utilisez un `JWT_SECRET` long, aléatoire et différent pour chaque
+  environnement.
+- Les mots de passe des comptes sont stockés sous forme de hash bcrypt.
+- Le middleware CORS autorise actuellement toutes les origines (`*`) ;
+  restreignez cette règle aux origines de confiance avant un déploiement public.
