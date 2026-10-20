@@ -2,7 +2,7 @@ import mysql from "mysql2/promise";
 import { requireAdmin } from "../../utils/auth.js";
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event);
+  await requireAdmin(event);
 
   let connection;
 

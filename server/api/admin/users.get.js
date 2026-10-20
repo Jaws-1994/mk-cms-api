@@ -3,7 +3,7 @@ import { requireAdmin } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   // Bloque la requête avant de contacter la DB si l'utilisateur n'est pas admin
-  requireAdmin(event)
+  await requireAdmin(event)
 
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
         user_mail,
         user_score,
         user_role,
+        user_is_blocked,
         user_avatar_color,
         user_avatar_emotion,
         user_avatar_hat_id
