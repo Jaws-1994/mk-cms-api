@@ -3,7 +3,7 @@
   <div class="default-layout">
     <header class="topbar">
       <NuxtLink to="/" class="brand">
-        CinéQuiz
+    <img src="/logo.png" alt="Logo Movie King" class="brand-icon" />
       </NuxtLink>
 
       <span class="subtitle">CMS cinéma</span>
