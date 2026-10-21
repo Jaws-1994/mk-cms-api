@@ -1,8 +1,9 @@
 import mysql from 'mysql2/promise'
-import { requireCurrentAdmin } from '../../../utils/auth'
+import { getAuthenticatedUser, requireCurrentAdmin } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const admin = await requireCurrentAdmin(event)
+    // Attend la vérification du token et du compte.
+  const authenticatedUser = await getAuthenticatedUser(event)
   const id = Number(getRouterParam(event, 'id'))
   const body = await readBody(event)
 
@@ -23,7 +24,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (id === admin.id && body.user_is_blocked) {
+  if (id === authenticatedUser.id && body.user_is_blocked) {
     throw createError({
       statusCode: 403,
       statusMessage: 'Vous ne pouvez pas bloquer votre propre compte',
@@ -39,6 +40,8 @@ export default defineEventHandler(async (event) => {
   })
 
   try {
+      // Vérifie le rôle admin avant toute opération sur le compte cible.
+    await requireCurrentAdmin(connection, authenticatedUser)
     const [users] = await connection.query(
       'SELECT ID_user FROM users WHERE ID_user = ?',
       [id]

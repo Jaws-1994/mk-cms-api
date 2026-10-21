@@ -1,8 +1,9 @@
 import mysql from 'mysql2/promise'
-import { requireCurrentAdmin } from '../../utils/auth'
+import { getAuthenticatedUser, requireCurrentAdmin } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  await requireCurrentAdmin(event)
+    // Attend la vérification du token et du compte.
+  const authenticatedUser = await getAuthenticatedUser(event)
 
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -12,7 +13,10 @@ export default defineEventHandler(async (event) => {
     database: process.env.DB_NAME,
   })
 
-  try {
+    try {
+    // Vérifie le rôle admin avec la connexion ouverte et l’utilisateur vérifié.
+    await requireCurrentAdmin(connection, authenticatedUser)
+
     const [quotes] = await connection.query(`
       SELECT
         q.ID_quote,

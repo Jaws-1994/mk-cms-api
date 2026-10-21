@@ -3,7 +3,7 @@ import { getAuthenticatedUser, requireCurrentAdmin } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   // Vérifie le token avant d’ouvrir la connexion.
-  const authenticatedUser = getAuthenticatedUser(event)
+  const authenticatedUser = await getAuthenticatedUser(event)
 
   let connection
 

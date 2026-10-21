@@ -3,8 +3,25 @@ import bcrypt from 'bcrypt'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-
+    // Vérifie que le corps reçu est un objet contenant les champs.
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Données d’inscription invalides',
+    })
+  }
   const { pseudo, mail, password } = body;
+    // Vérifie que les trois champs sont des chaînes de caractères.
+  if (
+    typeof pseudo !== 'string' ||
+    typeof mail !== 'string' ||
+    typeof password !== 'string'
+  ) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Le pseudo, l’email et le mot de passe doivent être des textes',
+    })
+  }
 
   // si pas de données -> erreur
   if (!pseudo || !mail || !password) {
