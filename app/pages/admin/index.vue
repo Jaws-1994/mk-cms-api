@@ -67,7 +67,7 @@ definePageMeta({
 
 .description {
   margin-top: 10px;
-  color: red;
+  color: #ff626b;
   font-size: 14px;
   line-height: 1.6;
 }

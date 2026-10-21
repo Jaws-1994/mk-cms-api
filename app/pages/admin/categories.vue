@@ -232,7 +232,7 @@ onMounted(loadCategories)
 
 .subtitle {
   margin: 10px 0 0;
-  color: red;
+  color: #ff626b;
   font-size: 14px;
   line-height: 1.6;
 }
