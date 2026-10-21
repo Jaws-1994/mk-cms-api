@@ -1,8 +1,8 @@
 import mysql from 'mysql2/promise'
-import { requireAdmin } from '../../../utils/auth'
+import { requireCurrentAdmin } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const admin = await requireAdmin(event)
+  const admin = await requireCurrentAdmin(event)
   const id = Number(getRouterParam(event, 'id'))
   const body = await readBody(event)
 
