@@ -3,7 +3,7 @@ import { getAuthenticatedUser, requireCurrentAdmin } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
 // Vérifie le token avant d’ouvrir une connexion à la base.
-const authenticatedUser = getAuthenticatedUser(event)
+const authenticatedUser = await getAuthenticatedUser(event)
 
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,
