@@ -1,8 +1,8 @@
 import mysql from 'mysql2/promise'
-import { requireAdmin } from '../../utils/auth'
+import { requireCurrentAdmin } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requireCurrentAdmin(event)
 
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,
