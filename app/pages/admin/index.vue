@@ -36,6 +36,14 @@ definePageMeta({
             Gérer les utilisateurs →
           </NuxtLink>
         </article>
+        <article class="stat-card">
+          <div class="stat-icon">💬</div>
+          <p>Citations</p>
+          <strong>Gérer les citations</strong>
+          <NuxtLink to="/admin/quotes">
+            Gérer les citations →
+          </NuxtLink>
+        </article>
       </div>
     </section>
   </AdminProtection>
@@ -56,16 +64,10 @@ definePageMeta({
   text-transform: uppercase;
 }
 
-h1 {
-  margin: 0;
-  color: #212121;
-  font-size: 30px;
-  font-weight: 700;
-}
 
 .description {
   margin-top: 10px;
-  color: #6B706D;
+  color: red;
   font-size: 14px;
   line-height: 1.6;
 }

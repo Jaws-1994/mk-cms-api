@@ -42,7 +42,7 @@ const loadCategories = async () => {
       return
     }
 
-    const response = await $fetch('/api/admin/categories', {
+    const response = await $fetch('/api/category', {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -73,7 +73,7 @@ onMounted(loadCategories)
         <p class="eyebrow">ADMINISTRATION / CONTENU</p>
         <h1>Catégories</h1>
         <p class="subtitle">
-          Consulte les genres de films enregistrés dans Movie King.
+          Consulte les catégories enregistrées dans Movie King.
         </p>
       </div>
 
@@ -228,16 +228,11 @@ onMounted(loadCategories)
   letter-spacing: 1.5px;
 }
 
-h1 {
-  margin: 0;
-  color: #212121;
-  font-size: 30px;
-  font-weight: 700;
-}
+
 
 .subtitle {
   margin: 10px 0 0;
-  color: #6B706D;
+  color: red;
   font-size: 14px;
   line-height: 1.6;
 }
