@@ -1,4 +1,3 @@
-```vue
 <script setup>
 import { onMounted, ref } from 'vue'
 
@@ -74,7 +73,14 @@ const handleLogout = async () => {
           <span class="nav-icon">♙</span>
           Utilisateurs
         </NuxtLink>
+     
+
+          <NuxtLink to="/admin/quotes" class="nav-link">
+          <span class="nav-icon">💬</span>
+          Citations
+        </NuxtLink>
       </nav>
+
 
       <!-- Déconnexion en bas de la barre latérale -->
       <div class="sidebar-bottom">
@@ -575,12 +581,6 @@ const handleLogout = async () => {
     height: 38px;
   }
 
-  .brand-name,
-  .menu-label,
-  .nav-link:not(.logout-link) {
-    /* La règle suivante sera remplacée ci-dessous pour conserver les icônes. */
-  }
-
   .navigation {
     width: 100%;
   }
@@ -654,4 +654,3 @@ const handleLogout = async () => {
   }
 }
 </style>
-```

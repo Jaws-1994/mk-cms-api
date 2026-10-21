@@ -1,5 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+const updatingUserId = ref(null)
+const actionError = ref('')
+const deletingUserId = ref(null)
 
 definePageMeta({
   layout: 'admin'
@@ -19,23 +22,37 @@ const errorMessage = ref('')
 // RECHERCHE ET FILTRE DES UTILISATEURS
 // ========================================
 
+
+
 const filteredUsers = computed(() => {
   const searchText = search.value.toLowerCase().trim()
 
-  return users.value.filter((user) => {
-    const pseudo = (user.user_pseudo || '').toLowerCase()
-    const mail = (user.user_mail || '').toLowerCase()
+  return users.value
+    .filter((user) => {
+      const pseudo = (user.user_pseudo || '').toLowerCase()
+      const mail = (user.user_mail || '').toLowerCase()
 
-    const matchesSearch =
-      pseudo.includes(searchText) ||
-      mail.includes(searchText)
+      const matchesSearch =
+        pseudo.includes(searchText) ||
+        mail.includes(searchText)
 
-    const matchesRole =
-      selectedRole.value === 'all' ||
-      user.user_role === selectedRole.value
+      const matchesRole =
+        selectedRole.value === 'all' ||
+        user.user_role === selectedRole.value
 
-    return matchesSearch && matchesRole
-  })
+      return matchesSearch && matchesRole
+    })
+    .sort((a, b) => {
+      // 1. Les administrateurs en premier
+      if (a.user_role === 'admin' && b.user_role !== 'admin') return -1
+      if (a.user_role !== 'admin' && b.user_role === 'admin') return 1
+
+      // 2. Tri alphabétique à rôle égal
+      return (a.user_pseudo || '').localeCompare(
+        b.user_pseudo || '',
+        'fr'
+      )
+    })
 })
 
 // ========================================
@@ -71,6 +88,88 @@ const loadUsers = async () => {
 }
 
 // ========================================
+// BLOQUAGE DE USERS
+// ========================================
+
+
+const toggleUserBlock = async (user) => {
+  actionError.value = ''
+
+  const isBlocked = Number(user.user_is_blocked) === 1
+  const newBlockedState = !isBlocked
+
+  updatingUserId.value = user.ID_user
+
+  try {
+    const token = sessionStorage.getItem('movieKingAdminToken')
+
+    await $fetch(`/api/admin/user/${user.ID_user}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: {
+        user_is_blocked: newBlockedState
+      }
+    })
+
+    // Actualise le statut dans le tableau après confirmation du serveur.
+    user.user_is_blocked = newBlockedState ? 1 : 0
+  } catch (error) {
+    actionError.value =
+      error.data?.statusMessage ||
+      'Impossible de modifier le statut de cet utilisateur.'
+  } finally {
+    updatingUserId.value = null
+  }
+}
+
+// ========================================
+// SUPPRESSION DE USERS
+// ========================================
+
+
+const deleteUser = async (user) => {
+  actionError.value = ''
+
+  const confirmed = window.confirm(
+    `Veux-tu vraiment supprimer le compte de ${user.user_pseudo} ? Cette action est irréversible.`
+  )
+
+  if (!confirmed) return
+
+  deletingUserId.value = user.ID_user
+
+  try {
+    const token = sessionStorage.getItem('movieKingAdminToken')
+
+    if (!token) {
+      throw new Error('Session administrateur introuvable.')
+    }
+
+    await $fetch(`/api/admin/user/${user.ID_user}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    // Retire la ligne uniquement après confirmation du serveur.
+    users.value = users.value.filter(
+      (item) => item.ID_user !== user.ID_user
+    )
+  } catch (error) {
+    actionError.value =
+      error.data?.statusMessage ||
+      error.message ||
+      'Impossible de supprimer cet utilisateur.'
+  } finally {
+    deletingUserId.value = null
+  }
+}
+
+
+// ========================================
 // INITIALISATION
 // ========================================
 
@@ -89,12 +188,7 @@ onMounted(loadUsers)
         </p>
       </div>
 
-      <button
-        class="refresh-button"
-        type="button"
-        :disabled="isLoading"
-        @click="loadUsers"
-      >
+      <button class="refresh-button" type="button" :disabled="isLoading" @click="loadUsers">
         <span class="refresh-icon">↻</span>
         {{ isLoading ? 'Chargement...' : 'Actualiser' }}
       </button>
@@ -124,18 +218,11 @@ onMounted(loadUsers)
         <div class="search-wrapper">
           <span class="search-icon" aria-hidden="true">⌕</span>
 
-          <input
-            v-model="search"
-            type="search"
-            placeholder="Rechercher un pseudo ou un e-mail..."
-            aria-label="Rechercher un utilisateur"
-          />
+          <input v-model="search" type="search" placeholder="Rechercher un pseudo ou un e-mail..."
+            aria-label="Rechercher un utilisateur" />
         </div>
 
-        <select
-          v-model="selectedRole"
-          aria-label="Filtrer par rôle"
-        >
+        <select v-model="selectedRole" aria-label="Filtrer par rôle">
           <option value="all">Tous les rôles</option>
           <option value="player">Joueurs</option>
           <option value="admin">Administrateurs</option>
@@ -154,11 +241,7 @@ onMounted(loadUsers)
 
         <p>{{ errorMessage }}</p>
 
-        <button
-          type="button"
-          class="retry-button"
-          @click="loadUsers"
-        >
+        <button type="button" class="retry-button" @click="loadUsers">
           Réessayer
         </button>
       </div>
@@ -173,14 +256,14 @@ onMounted(loadUsers)
                 <th scope="col">E-mail</th>
                 <th scope="col">Rôle</th>
                 <th scope="col">Score</th>
+                <th scope="col">Statut</th>
+                <th scope="col">Action</th>
               </tr>
             </thead>
 
+
             <tbody>
-              <tr
-                v-for="user in filteredUsers"
-                :key="user.ID_user"
-              >
+              <tr v-for="user in filteredUsers" :key="user.ID_user">
                 <td class="pseudo">
                   {{ user.user_pseudo || 'Sans pseudo' }}
                 </td>
@@ -190,10 +273,7 @@ onMounted(loadUsers)
                 </td>
 
                 <td>
-                  <span
-                    class="role-badge"
-                    :class="user.user_role"
-                  >
+                  <span class="role-badge" :class="user.user_role">
                     <span class="role-dot"></span>
                     {{ user.user_role === 'admin' ? 'Admin' : 'Joueur' }}
                   </span>
@@ -202,10 +282,42 @@ onMounted(loadUsers)
                 <td class="score">
                   {{ user.user_score ?? 0 }}
                 </td>
+
+                <!-- Statut du compte -->
+                <td>
+                  <span class="status-badge" :class="Number(user.user_is_blocked) === 1 ? 'blocked' : 'active'">
+                    {{ Number(user.user_is_blocked) === 1 ? 'Bloqué' : 'Actif' }}
+                  </span>
+                </td>
+
+                <!-- Action de blocage -->
+                <td>
+                  <button type="button" class="block-button"
+                    :class="Number(user.user_is_blocked) === 1 ? 'unblock' : 'block'"
+                    :disabled="updatingUserId === user.ID_user" @click="toggleUserBlock(user)">
+                    {{
+                      updatingUserId === user.ID_user
+                        ? 'Patientez...'
+                        : Number(user.user_is_blocked) === 1
+                          ? 'Débloquer'
+                          : 'Bloquer'
+                    }}
+                  </button>
+
+                  <button type="button" class="delete-button" :disabled="deletingUserId === user.ID_user"
+                    @click="deleteUser(user)">
+                    {{
+                      deletingUserId === user.ID_user
+                        ? 'Suppression...'
+                    : 'Supprimer'
+                    }}
+                  </button>
+                </td>
               </tr>
 
+              <!-- Aucun résultat -->
               <tr v-if="filteredUsers.length === 0">
-                <td colspan="4" class="empty-state">
+                <td colspan="6" class="empty-state">
                   <span class="empty-icon">⌕</span>
 
                   <p>
@@ -216,17 +328,14 @@ onMounted(loadUsers)
                     }}
                   </p>
 
-                  <button
-                    v-if="search || selectedRole !== 'all'"
-                    type="button"
-                    class="clear-filters"
-                    @click="search = ''; selectedRole = 'all'"
-                  >
+                  <button v-if="search || selectedRole !== 'all'" type="button" class="clear-filters"
+                    @click="search = ''; selectedRole = 'all'">
                     Effacer les filtres
                   </button>
                 </td>
               </tr>
             </tbody>
+
           </table>
         </div>
 
@@ -239,12 +348,8 @@ onMounted(loadUsers)
             {{ users.length }} au total
           </p>
 
-          <button
-            v-if="search || selectedRole !== 'all'"
-            type="button"
-            class="clear-filters"
-            @click="search = ''; selectedRole = 'all'"
-          >
+          <button v-if="search || selectedRole !== 'all'" type="button" class="clear-filters"
+            @click="search = ''; selectedRole = 'all'">
             Réinitialiser les filtres
           </button>
         </footer>
@@ -278,16 +383,10 @@ onMounted(loadUsers)
   letter-spacing: 1.5px;
 }
 
-h1 {
-  margin: 0;
-  color: #212121;
-  font-size: 30px;
-  font-weight: 700;
-}
 
 .subtitle {
   margin: 10px 0 0;
-  color: #6B706D;
+  color: #ff626b;
   font-size: 14px;
   line-height: 1.6;
 }
@@ -741,6 +840,7 @@ tbody tr:not(:last-child):hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -749,4 +849,89 @@ tbody tr:not(:last-child):hover {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ========================================
+   bouton bloquage
+======================================== */
+
+
+.status-badge {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-badge.active {
+  background: #E7F0EC;
+  color: #42675D;
+}
+
+.status-badge.blocked {
+  background: #FCE8E6;
+  color: #B8403B;
+}
+
+.block-button {
+  padding: 8px 11px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.block-button.block {
+  background: #FCE8E6;
+  color: #B8403B;
+}
+
+.block-button.unblock {
+  background: #E7F0EC;
+  color: #42675D;
+}
+
+.block-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.block-button:focus-visible {
+  outline: 2px solid #739C91;
+  outline-offset: 3px;
+}
+
+
+/* ========================================
+   bouton SUPRESSION
+======================================== */
+
+
+.delete-button {
+  padding: 10px 13px;
+  border: 1px solid #D9534F;
+  border-radius: 7px;
+  background: #FFFFFF;
+  color: #B8403B;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+   margin-left: 8px;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: #FCE8E6;
+}
+
+.delete-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 </style>
