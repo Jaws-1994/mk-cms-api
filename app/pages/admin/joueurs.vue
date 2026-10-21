@@ -17,6 +17,7 @@ const search = ref('')
 const selectedRole = ref('all')
 const isLoading = ref(true)
 const errorMessage = ref('')
+const selectedSort = ref('default')
 
 // ========================================
 // RECHERCHE ET FILTRE DES UTILISATEURS
@@ -43,17 +44,33 @@ const filteredUsers = computed(() => {
       return matchesSearch && matchesRole
     })
     .sort((a, b) => {
-      // 1. Les administrateurs en premier
+      // Classement selon le score
+      if (selectedSort.value === 'score-desc') {
+        const scoreDifference =
+          Number(b.user_score ?? 0) - Number(a.user_score ?? 0)
+
+        if (scoreDifference !== 0) return scoreDifference
+      }
+
+      if (selectedSort.value === 'score-asc') {
+        const scoreDifference =
+          Number(a.user_score ?? 0) - Number(b.user_score ?? 0)
+
+        if (scoreDifference !== 0) return scoreDifference
+      }
+
+      // Tri par défaut : administrateurs en premier
       if (a.user_role === 'admin' && b.user_role !== 'admin') return -1
       if (a.user_role !== 'admin' && b.user_role === 'admin') return 1
 
-      // 2. Tri alphabétique à rôle égal
+      // Puis ordre alphabétique
       return (a.user_pseudo || '').localeCompare(
         b.user_pseudo || '',
         'fr'
       )
     })
 })
+
 
 // ========================================
 // CHARGEMENT DEPUIS L'API
@@ -227,6 +244,14 @@ onMounted(loadUsers)
           <option value="player">Joueurs</option>
           <option value="admin">Administrateurs</option>
         </select>
+
+
+
+        <select v-model="selectedSort" aria-label="Trier les utilisateurs">
+          <option value="default">Tri par défaut</option>
+          <option value="score-desc">Meilleurs scores</option>
+          <option value="score-asc">Scores les plus faibles</option>
+        </select>
       </div>
 
       <!-- Chargement -->
@@ -309,7 +334,7 @@ onMounted(loadUsers)
                     {{
                       deletingUserId === user.ID_user
                         ? 'Suppression...'
-                    : 'Supprimer'
+                        : 'Supprimer'
                     }}
                   </button>
                 </td>
@@ -328,10 +353,12 @@ onMounted(loadUsers)
                     }}
                   </p>
 
-                  <button v-if="search || selectedRole !== 'all'" type="button" class="clear-filters"
-                    @click="search = ''; selectedRole = 'all'">
-                    Effacer les filtres
+
+                  <button v-if="search || selectedRole !== 'all' || selectedSort !== 'default'" type="button"
+                    class="clear-filters" @click="search = ''; selectedRole = 'all'; selectedSort = 'default'">
+                    Réinitialiser les filtres
                   </button>
+
                 </td>
               </tr>
             </tbody>
@@ -922,7 +949,7 @@ tbody tr:not(:last-child):hover {
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-   margin-left: 8px;
+  margin-left: 8px;
 }
 
 .delete-button:hover:not(:disabled) {
@@ -933,5 +960,4 @@ tbody tr:not(:last-child):hover {
   opacity: 0.6;
   cursor: wait;
 }
-
 </style>
