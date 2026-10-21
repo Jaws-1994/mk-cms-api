@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 
@@ -124,7 +123,7 @@ onMounted(() => {
 
 
 <template>
- <section class="page-content quotes-page">
+  <section class="page-content quotes-page">
     <!-- EN-TÊTE -->
     <header class="page-header">
       <div>
@@ -135,12 +134,7 @@ onMounted(() => {
         </p>
       </div>
 
-      <button
-        class="refresh-button"
-        type="button"
-        :disabled="isLoading"
-        @click="loadQuotes"
-      >
+      <button class="refresh-button" type="button" :disabled="isLoading" @click="loadQuotes">
         <span aria-hidden="true">↻</span>
         {{ isLoading ? 'Chargement...' : 'Actualiser' }}
       </button>
@@ -162,11 +156,7 @@ onMounted(() => {
     <div v-if="errorMessage" class="feedback error" role="alert">
       <p>{{ errorMessage }}</p>
 
-      <button
-        type="button"
-        class="retry-button"
-        @click="loadQuotes"
-      >
+      <button type="button" class="retry-button" @click="loadQuotes">
         Réessayer
       </button>
     </div>
@@ -184,26 +174,15 @@ onMounted(() => {
         <div class="search-field">
           <span aria-hidden="true">⌕</span>
 
-          <input
-            v-model="search"
-            type="search"
-            placeholder="Rechercher une citation, un film..."
-            aria-label="Rechercher une citation ou un film"
-          />
+          <input v-model="search" type="search" placeholder="Rechercher une citation, un film..."
+            aria-label="Rechercher une citation ou un film" />
         </div>
 
-        <select
-          v-model="selectedStatus"
-          aria-label="Filtrer par statut"
-          class="status-filter"
-        >
+        <select v-model="selectedStatus" aria-label="Filtrer par statut" class="status-filter">
           <option value="">Tous les statuts</option>
 
-          <option
-            v-for="status in [...new Set(quotes.map(q => q.quote_status).filter(Boolean))]"
-            :key="status"
-            :value="status"
-          >
+          <option v-for="status in [...new Set(quotes.map(q => q.quote_status).filter(Boolean))]" :key="status"
+            :value="status">
             {{ formatStatus(status) }}
           </option>
         </select>
@@ -232,16 +211,16 @@ onMounted(() => {
           </thead>
 
           <tbody>
-            <tr
-              v-for="quote in filteredQuotes"
-              :key="quote.ID_quote"
-            >
+            <tr v-for="quote in filteredQuotes" :key="quote.ID_quote">
+
               <td class="quote-cell">
                 <span class="quote-mark" aria-hidden="true">“</span>
                 <span>
                   {{ quote.quote_text || 'Citation sans texte' }}
                 </span>
+                <span class="quote-mark quote-mark-end" aria-hidden="true">”</span>
               </td>
+
 
               <td class="movie-cell">
                 {{ quote.movie_title || 'Film inconnu' }}
@@ -271,12 +250,8 @@ onMounted(() => {
                   }}
                 </p>
 
-                <button
-                  v-if="search || selectedStatus"
-                  type="button"
-                  class="reset-button"
-                  @click="search = ''; selectedStatus = ''"
-                >
+                <button v-if="search || selectedStatus" type="button" class="reset-button"
+                  @click="search = ''; selectedStatus = ''">
                   Réinitialiser les filtres
                 </button>
               </td>
@@ -322,7 +297,7 @@ onMounted(() => {
 
 .page-description {
   margin: 10px 0 0;
-  color: red;
+  color: #ff626b;
   font-size: 14px;
   line-height: 1.6;
 }
@@ -435,7 +410,7 @@ onMounted(() => {
   outline: none;
 }
 
-.search-field > span {
+.search-field>span {
   flex-shrink: 0;
   color: #6B706D;
   font-size: 23px;
@@ -562,12 +537,19 @@ tbody tr:hover {
   overflow-wrap: anywhere;
 }
 
+
 .quote-mark {
   margin-right: 5px;
   color: #739C91;
   font-size: 20px;
   font-weight: 800;
 }
+
+.quote-mark-end {
+  margin-right: 0;
+  margin-left: 1px;
+}
+
 
 .movie-cell {
   min-width: 150px;
@@ -758,6 +740,7 @@ tbody tr:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
