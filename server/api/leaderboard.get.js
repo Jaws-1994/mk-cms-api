@@ -16,6 +16,7 @@ export default defineEventHandler(async () => {
         user_pseudo,
         user_score
       FROM users
+      WHERE user_is_blocked = 0
       ORDER BY user_score DESC, ID_user ASC
     `)
 

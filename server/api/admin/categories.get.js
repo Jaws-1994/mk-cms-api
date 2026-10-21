@@ -1,10 +1,11 @@
-import mysql from "mysql2/promise";
-import { requireAdmin } from "../../utils/auth.js";
+import mysql from 'mysql2/promise'
+import { getAuthenticatedUser, requireCurrentAdmin } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event);
+  // Vérifie le token avant d’ouvrir la connexion.
+  const authenticatedUser = await getAuthenticatedUser(event)
 
-  let connection;
+  let connection
 
   try {
     connection = await mysql.createConnection({
@@ -13,25 +14,33 @@ export default defineEventHandler(async (event) => {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-    });
+    })
+
+    // Vérifie le compte et son rôle actuel avant de lire les catégories.
+    await requireCurrentAdmin(connection, authenticatedUser)
 
     const [categories] = await connection.execute(`
       SELECT id_genre, genre_name
       FROM genres
       ORDER BY genre_name ASC
-    `);
+    `)
 
-    return { categories };
+    return { categories }
   } catch (error) {
-    console.error("Erreur chargement des genres :", error);
+    // Conserve les refus d’authentification et d’autorisation.
+    if (error?.statusCode === 401 || error?.statusCode === 403) {
+      throw error
+    }
+
+    console.error('Erreur chargement des genres :', error)
 
     throw createError({
       statusCode: 500,
-      statusMessage: error.message || "Erreur inconnue",
-    });
+      statusMessage: 'Impossible de charger les catégories',
+    })
   } finally {
     if (connection) {
-      await connection.end();
+      await connection.end()
     }
   }
-});
+})
