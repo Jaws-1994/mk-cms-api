@@ -21,10 +21,10 @@ definePageMeta({
       <div class="stats-grid">
         <article class="stat-card">
           <div class="stat-icon">🏷️</div>
-          <p>Catégories</p>
+          <p>Genres</p>
           <strong>Classification</strong>
           <NuxtLink to="/admin/categories">
-            Gérer les catégories →
+            Gérer les genres →
           </NuxtLink>
         </article>
 

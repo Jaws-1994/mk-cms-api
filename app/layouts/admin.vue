@@ -66,7 +66,7 @@ const handleLogout = async () => {
 
         <NuxtLink to="/admin/categories" class="nav-link">
           <span class="nav-icon">▤</span>
-          Catégories
+          Genres
         </NuxtLink>
 
         <NuxtLink to="/admin/joueurs" class="nav-link">
