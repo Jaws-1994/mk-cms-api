@@ -1,6 +1,7 @@
 import mysql from 'mysql2/promise'
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { getAuthenticatedUser } from '../../utils/auth'
+import { unlockAvailableHats } from '../../utils/hats.js'
 
 // MySQL peut renvoyer les JSON déjà décodés, MariaDB peut renvoyer du texte.
 const parseJson = (value) => typeof value === 'string' ? JSON.parse(value) : value
@@ -224,8 +225,14 @@ export default defineEventHandler(async (event) => {
       )
 
       if (result.affectedRows === 0) {
-        throw createError({ statusCode: 401, statusMessage: 'Compte introuvable' })
+        throw createError({
+          statusCode: 401,
+          statusMessage: 'Compte introuvable',
+        })
       }
+
+      // Utilise le score actualisé et la transaction déjà ouverte.
+      await unlockAvailableHats(connection, game.ID_user)
     }
 
     await connection.query(
