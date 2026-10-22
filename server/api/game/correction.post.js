@@ -176,10 +176,6 @@ export default defineEventHandler(async (event) => {
 
     // Met à jour les statistiques des citations auxquelles le joueur a répondu.
     for (const answer of corrections) {
-      // Une question ignorée ou sans film sélectionné n'est pas comptabilisée.
-      if (answer.selected_movie_id === null) {
-        continue
-      }
 
       // Retrouve la citation depuis la partie enregistrée côté serveur.
       const question = questions.get(answer.question_id)
