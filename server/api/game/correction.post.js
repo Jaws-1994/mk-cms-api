@@ -174,6 +174,32 @@ export default defineEventHandler(async (event) => {
       }
     })
 
+    // Met à jour les statistiques des citations auxquelles le joueur a répondu.
+    for (const answer of corrections) {
+      // Une question ignorée ou sans film sélectionné n'est pas comptabilisée.
+      if (answer.selected_movie_id === null) {
+        continue
+      }
+
+      // Retrouve la citation depuis la partie enregistrée côté serveur.
+      const question = questions.get(answer.question_id)
+      const quoteId = question.quote.ID_quote
+
+      await connection.query(
+        `UPDATE quotes
+     SET
+       times_asked = times_asked + 1,
+       correct_count = correct_count + ?,
+       incorrect_count = incorrect_count + ?
+     WHERE ID_quote = ?`,
+        [
+          answer.is_correct ? 1 : 0,
+          answer.is_correct ? 0 : 1,
+          quoteId,
+        ]
+      )
+    }
+
     const correctCount = corrections.filter((question) => question.is_correct).length
     const totalScore = corrections.reduce((total, question) => total + question.score, 0)
 
