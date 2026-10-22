@@ -70,10 +70,10 @@ onMounted(loadCategories)
     <!-- En-tête -->
     <header class="page-header">
       <div>
-        <p class="eyebrow">ADMINISTRATION / CONTENU</p>
-        <h1>Catégories</h1>
+        <p class="eyebrow">ADMINISTRATION / GENRES</p>
+        <h1>Genres des films</h1>
         <p class="subtitle">
-          Consulte les catégories enregistrées dans Movie King.
+          Consulte les genres enregistrés dans Movie King.
         </p>
       </div>
 

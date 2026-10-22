@@ -66,19 +66,25 @@ const handleLogout = async () => {
 
         <NuxtLink to="/admin/categories" class="nav-link">
           <span class="nav-icon">▤</span>
-          Catégories
+          Genres de films
         </NuxtLink>
 
         <NuxtLink to="/admin/joueurs" class="nav-link">
           <span class="nav-icon">♙</span>
           Utilisateurs
         </NuxtLink>
-     
 
-          <NuxtLink to="/admin/quotes" class="nav-link">
+
+        <NuxtLink to="/admin/quotes" class="nav-link">
           <span class="nav-icon">💬</span>
           Citations
         </NuxtLink>
+
+        <NuxtLink to="/admin/statistiques" class="nav-link">
+          <span class="nav-icon">▥</span>
+          Statistiques
+        </NuxtLink>
+
       </nav>
 
 
@@ -86,11 +92,7 @@ const handleLogout = async () => {
       <div class="sidebar-bottom">
         <div class="sidebar-separator"></div>
 
-        <button
-          class="nav-link logout-link"
-          type="button"
-          @click="handleLogout"
-        >
+        <button class="nav-link logout-link" type="button" @click="handleLogout">
           <span class="nav-icon">⇥</span>
           Déconnexion
         </button>
@@ -648,6 +650,7 @@ const handleLogout = async () => {
 /* Réduire les animations si l'utilisateur le préfère */
 
 @media (prefers-reduced-motion: reduce) {
+
   .nav-link,
   .page-content button {
     transition: none;
