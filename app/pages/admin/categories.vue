@@ -52,7 +52,7 @@ const loadCategories = async () => {
   } catch (error) {
     errorMessage.value =
       error.data?.statusMessage ||
-      'Impossible de charger les catégories.'
+      'Impossible de charger les genres.'
   } finally {
     isLoading.value = false
   }
@@ -71,9 +71,9 @@ onMounted(loadCategories)
     <header class="page-header">
       <div>
         <p class="eyebrow">ADMINISTRATION / CONTENU</p>
-        <h1>Catégories</h1>
+        <h1>Genres</h1>
         <p class="subtitle">
-          Consulte les catégories enregistrées dans Movie King.
+          Consulte les genres enregistrés dans Movie King.
         </p>
       </div>
 
@@ -103,7 +103,7 @@ onMounted(loadCategories)
       <div class="table-heading">
         <div>
           <h2>Liste des genres</h2>
-          <p>Retrouve facilement une catégorie dans la liste.</p>
+          <p>Retrouve facilement un genre dans la liste.</p>
         </div>
       </div>
 
@@ -122,7 +122,7 @@ onMounted(loadCategories)
       <!-- Chargement -->
       <p v-if="isLoading" class="feedback">
         <span class="loading-dot"></span>
-        Chargement des catégories...
+        Chargement des genres...
       </p>
 
       <!-- Erreur -->
@@ -174,7 +174,7 @@ onMounted(loadCategories)
                     {{
                       search
                         ? 'Aucun genre ne correspond à ta recherche.'
-                        : 'Aucune catégorie enregistrée.'
+                        : 'Aucun genre enregistré.'
                     }}
                   </p>
                 </td>
