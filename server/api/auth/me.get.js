@@ -20,19 +20,21 @@ export default defineEventHandler(async (event) => {
 
     const [users] = await connection.query(
       `
-        SELECT
-          ID_user,
-          user_pseudo,
-          user_mail,
-          user_score,
-          user_role,
-          user_avatar_color,
-          user_avatar_emotion,
-          user_avatar_hat_id
-        FROM users
-        WHERE ID_user = ?
-        LIMIT 1
-      `,
+    SELECT
+      u.ID_user,
+      u.user_pseudo,
+      u.user_mail,
+      u.user_score,
+      u.user_role,
+      u.user_avatar_color,
+      u.user_avatar_emotion,
+      u.user_avatar_hat_id,
+      h.hat_asset_key AS user_avatar_hat_asset_key
+    FROM users u
+    LEFT JOIN hats h ON h.ID_hat = u.user_avatar_hat_id
+    WHERE u.ID_user = ?
+    LIMIT 1
+  `,
       [decoded.id]
     )
 
@@ -56,6 +58,7 @@ export default defineEventHandler(async (event) => {
       user_avatar_color: user.user_avatar_color,
       user_avatar_emotion: user.user_avatar_emotion,
       user_avatar_hat_id: user.user_avatar_hat_id,
+      user_avatar_hat_asset_key: user.user_avatar_hat_asset_key,
     }
   } catch (error) {
     await connection.rollback()
