@@ -13,6 +13,7 @@ const search = ref('')
 const selectedStatus = ref('')
 const isLoading = ref(true)
 const errorMessage = ref('')
+const loaded = ref(false);
 
 // ========================================
 // FILTRAGE DES CITATIONS
@@ -58,6 +59,7 @@ const loadQuotes = async () => {
     })
 
     quotes.value = response.quotes || []
+    loaded.value = true;
   } catch (error) {
     errorMessage.value =
       error.data?.statusMessage ||
@@ -144,7 +146,7 @@ onMounted(() => {
     <div class="summary-card">
       <div class="summary-icon" aria-hidden="true">❝</div>
 
-      <div>
+      <div v-show="loaded">
         <p class="summary-label">Citations enregistrées</p>
         <p class="summary-number">
           {{ quotes.length }}

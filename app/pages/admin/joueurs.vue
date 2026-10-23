@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from "vue";
 const updatingUserId = ref(null);
 const actionError = ref("");
 const deletingUserId = ref(null);
+const loaded = ref(false);
 
 definePageMeta({
   layout: "admin",
@@ -87,6 +88,7 @@ const loadUsers = async () => {
     });
 
     users.value = response.users || [];
+    loaded.value = true;
   } catch (error) {
     errorMessage.value =
       error.data?.statusMessage || "Impossible de charger les utilisateurs.";
@@ -94,6 +96,83 @@ const loadUsers = async () => {
     isLoading.value = false;
   }
 };
+
+
+
+
+// ========================================
+// EXPORT CSV DES UTILISATEURS
+// ========================================
+
+const exportUsersToCSV = () => {
+  // Les mêmes utilisateurs que ceux affichés dans le tableau.
+  const data = filteredUsers.value
+
+  if (data.length === 0) {
+    actionError.value = "Aucun utilisateur à exporter."
+    return
+  }
+
+  // Colonnes autorisées dans le fichier CSV.
+  const columns = [
+    { label: "Identifiant", key: "ID_user" },
+    { label: "Pseudo", key: "user_pseudo" },
+    { label: "E-mail", key: "user_mail" },
+    { label: "Rôle", key: "user_role" },
+    { label: "Score", key: "user_score" },
+    { label: "Statut", key: "user_is_blocked" },
+    { label: "Date de création", key: "user_created_at" },
+  ]
+
+  // Protège les cellules et échappe les guillemets.
+  const escapeCSV = (value) => {
+    let text = String(value ?? "")
+
+    // Évite qu'un tableur interprète une cellule comme une formule.
+    if (/^[\s]*[=+\-@]/.test(text)) {
+      text = `'${text}`
+    }
+
+    return `"${text.replace(/"/g, '""')}"`
+  }
+
+  const header = columns
+    .map((column) => escapeCSV(column.label))
+    .join(";")
+
+  const rows = data.map((user) =>
+    columns
+      .map((column) => {
+        let value = user[column.key]
+
+        if (column.key === "user_is_blocked") {
+          value = Number(value) === 1 ? "Bloqué" : "Actif"
+        }
+
+        return escapeCSV(value)
+      })
+      .join(";"),
+  )
+
+  // BOM UTF-8 pour faciliter l'ouverture des accents dans Excel.
+  const csvContent = "\uFEFF" + [header, ...rows].join("\r\n")
+  const blob = new Blob([csvContent], {
+    type: "text/csv;charset=utf-8;",
+  })
+
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+
+  link.href = url
+  link.download = `utilisateurs-movie-king-${new Date()
+    .toISOString()
+    .slice(0, 10)}.csv`
+
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}
 
 // ========================================
 // BLOQUAGE DE USERS
@@ -191,22 +270,26 @@ onMounted(loadUsers);
         </p>
       </div>
 
-      <button
-        class="refresh-button"
-        type="button"
-        :disabled="isLoading"
-        @click="loadUsers"
-      >
-        <span class="refresh-icon">↻</span>
-        {{ isLoading ? "Chargement..." : "Actualiser" }}
-      </button>
+
+      <div class="header-actions">
+        <button class="export-button" type="button" :disabled="isLoading || filteredUsers.length === 0"
+          @click="exportUsersToCSV">
+          ↓ Exporter CSV
+        </button>
+
+        <button class="refresh-button" type="button" :disabled="isLoading" @click="loadUsers">
+          <span class="refresh-icon">↻</span>
+          {{ isLoading ? "Chargement..." : "Actualiser" }}
+        </button>
+      </div>
+
     </header>
 
     <!-- Statistique -->
     <div class="stats-card">
       <span class="stats-icon">♙</span>
 
-      <div>
+      <div v-show="loaded">
         <p>Comptes enregistrés</p>
         <strong>{{ users.length }}</strong>
       </div>
@@ -226,12 +309,8 @@ onMounted(loadUsers);
         <div class="search-wrapper">
           <span class="search-icon" aria-hidden="true">⌕</span>
 
-          <input
-            v-model="search"
-            type="search"
-            placeholder="Rechercher un pseudo ou un e-mail..."
-            aria-label="Rechercher un utilisateur"
-          />
+          <input v-model="search" type="search" placeholder="Rechercher un pseudo ou un e-mail..."
+            aria-label="Rechercher un utilisateur" />
         </div>
 
         <select v-model="selectedRole" aria-label="Filtrer par rôle">
@@ -274,6 +353,7 @@ onMounted(loadUsers);
                 <th scope="col">E-mail</th>
                 <th scope="col">Rôle</th>
                 <th scope="col">Score</th>
+                <th scope="col">Date de création</th>
                 <th scope="col">Statut</th>
                 <th scope="col">Action</th>
               </tr>
@@ -302,12 +382,8 @@ onMounted(loadUsers);
 
                 <!-- Statut du compte -->
                 <td>
-                  <span
-                    class="status-badge"
-                    :class="
-                      Number(user.user_is_blocked) === 1 ? 'blocked' : 'active'
-                    "
-                  >
+                  <span class="status-badge" :class="Number(user.user_is_blocked) === 1 ? 'blocked' : 'active'
+                    ">
                     {{
                       Number(user.user_is_blocked) === 1 ? "Bloqué" : "Actif"
                     }}
@@ -316,15 +392,8 @@ onMounted(loadUsers);
 
                 <!-- Action de blocage -->
                 <td>
-                  <button
-                    type="button"
-                    class="block-button"
-                    :class="
-                      Number(user.user_is_blocked) === 1 ? 'unblock' : 'block'
-                    "
-                    :disabled="updatingUserId === user.ID_user"
-                    @click="toggleUserBlock(user)"
-                  >
+                  <button type="button" class="block-button" :class="Number(user.user_is_blocked) === 1 ? 'unblock' : 'block'
+                    " :disabled="updatingUserId === user.ID_user" @click="toggleUserBlock(user)">
                     {{
                       updatingUserId === user.ID_user
                         ? "Patientez..."
@@ -334,17 +403,10 @@ onMounted(loadUsers);
                     }}
                   </button>
 
-                  <button
-                    type="button"
-                    class="delete-button"
-                    :disabled="deletingUserId === user.ID_user"
+                  <button type="button" class="delete-button" :disabled="deletingUserId === user.ID_user"
                     :aria-label="`Supprimer le compte de ${user.user_pseudo}`"
-                    :title="`Supprimer le compte de ${user.user_pseudo}`"
-                    @click="deleteUser(user)"
-                  >
-                    <span v-if="deletingUserId === user.ID_user"
-                      >Suppression...</span
-                    >
+                    :title="`Supprimer le compte de ${user.user_pseudo}`" @click="deleteUser(user)">
+                    <span v-if="deletingUserId === user.ID_user">Suppression...</span>
                     <span v-else aria-hidden="true">🗑️</span>
                   </button>
                 </td>
@@ -363,20 +425,15 @@ onMounted(loadUsers);
                     }}
                   </p>
 
-                  <button
-                    v-if="
-                      search ||
-                      selectedRole !== 'all' ||
-                      selectedSort !== 'default'
-                    "
-                    type="button"
-                    class="clear-filters"
-                    @click="
+                  <button v-if="
+                    search ||
+                    selectedRole !== 'all' ||
+                    selectedSort !== 'default'
+                  " type="button" class="clear-filters" @click="
                       search = '';
-                      selectedRole = 'all';
-                      selectedSort = 'default';
-                    "
-                  >
+                    selectedRole = 'all';
+                    selectedSort = 'default';
+                    ">
                     Réinitialiser les filtres
                   </button>
                 </td>
@@ -394,15 +451,10 @@ onMounted(loadUsers);
             {{ users.length }} au total
           </p>
 
-          <button
-            v-if="search || selectedRole !== 'all'"
-            type="button"
-            class="clear-filters"
-            @click="
-              search = '';
-              selectedRole = 'all';
-            "
-          >
+          <button v-if="search || selectedRole !== 'all'" type="button" class="clear-filters" @click="
+            search = '';
+          selectedRole = 'all';
+          ">
             Réinitialiser les filtres
           </button>
         </footer>
@@ -480,6 +532,56 @@ onMounted(loadUsers);
   font-size: 19px;
   line-height: 1;
 }
+
+
+/* ========================================
+   BOUTON CSV
+======================================== */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.export-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 1px solid #739c91;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #52796f;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.export-button:hover:not(:disabled) {
+  background: #e7f0ec;
+}
+
+.export-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .header-actions button {
+    width: 100%;
+  }
+}
+
 
 /* ========================================
    STATISTIQUE
@@ -892,6 +994,7 @@ tbody tr:not(:last-child):hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
