@@ -13,6 +13,7 @@ const categories = ref([])
 const search = ref('')
 const isLoading = ref(true)
 const errorMessage = ref('')
+const loaded = ref(false);
 
 // ========================================
 // RECHERCHE DES CATÉGORIES
@@ -49,6 +50,7 @@ const loadCategories = async () => {
     })
 
     categories.value = response.categories || []
+    loaded.value = true;
   } catch (error) {
     errorMessage.value =
       error.data?.statusMessage ||
@@ -92,7 +94,7 @@ onMounted(loadCategories)
     <div class="stats-card">
       <span class="stats-icon">▤</span>
 
-      <div>
+      <div v-show="loaded">
         <p>Genres enregistrés</p>
         <strong>{{ categories.length }}</strong>
       </div>
