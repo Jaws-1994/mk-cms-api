@@ -263,10 +263,10 @@ onMounted(loadUsers);
     <!-- En-tête -->
     <header class="page-header">
       <div>
-        <p class="eyebrow">ADMINISTRATION / COMPTES</p>
+        <p class="eyebrow">ADMINISTRATION / UTILISATEURS</p>
         <h1>Utilisateurs</h1>
         <p class="subtitle">
-          Consulte et retrouve les comptes inscrits sur Movie King.
+          Consulte et retrouve les utilisateurs inscrits sur Movie King.
         </p>
       </div>
 
@@ -299,7 +299,7 @@ onMounted(loadUsers);
     <div class="users-card">
       <div class="table-heading">
         <div>
-          <h2>Liste des comptes</h2>
+          <h2>Liste des utilisateurs</h2>
           <p>Recherche et filtre les membres de Movie King.</p>
         </div>
       </div>

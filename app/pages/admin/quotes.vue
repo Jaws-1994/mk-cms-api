@@ -129,7 +129,7 @@ onMounted(() => {
     <!-- EN-TÊTE -->
     <header class="page-header">
       <div>
-        <p class="eyebrow">MOVIE KING / CONTENU</p>
+        <p class="eyebrow">ADMINISTRATION / CITATIONS</p>
         <h1>Gestion des citations</h1>
         <p class="page-description">
           Consulte et retrouve les citations associées aux films de ton quiz.
