@@ -9,8 +9,9 @@ definePageMeta({
 // ========================================
 
 const quotes = ref([])
-const search = ref('')
 const selectedStatus = ref('')
+const selectedMovie = ref('')
+const selectedQuote = ref('')
 const isLoading = ref(true)
 const errorMessage = ref('')
 const loaded = ref(false);
@@ -20,20 +21,20 @@ const loaded = ref(false);
 // ========================================
 
 const filteredQuotes = computed(() => {
-  const searchText = search.value.toLowerCase().trim()
-
   return quotes.value.filter((quote) => {
-    const matchesSearch =
-      !searchText ||
-      (quote.quote_text || '').toLowerCase().includes(searchText) ||
-      (quote.movie_title || '').toLowerCase().includes(searchText) ||
-      (quote.quote_source || '').toLowerCase().includes(searchText)
-
     const matchesStatus =
       !selectedStatus.value ||
       quote.quote_status === selectedStatus.value
 
-    return matchesSearch && matchesStatus
+    const matchesMovie =
+      !selectedMovie.value ||
+      String(quote.ID_movie) === selectedMovie.value
+
+    const matchesQuote =
+      !selectedQuote.value ||
+      String(quote.ID_quote) === selectedQuote.value
+
+    return matchesStatus && matchesMovie && matchesQuote
   })
 })
 
@@ -173,13 +174,6 @@ onMounted(() => {
 
       <!-- RECHERCHE ET FILTRES -->
       <div class="filters">
-        <div class="search-field">
-          <span aria-hidden="true">⌕</span>
-
-          <input v-model="search" type="search" placeholder="Rechercher une citation, un film..."
-            aria-label="Rechercher une citation ou un film" />
-        </div>
-
         <select v-model="selectedStatus" aria-label="Filtrer par statut" class="status-filter">
           <option value="">Tous les statuts</option>
 
@@ -188,6 +182,12 @@ onMounted(() => {
             {{ formatStatus(status) }}
           </option>
         </select>
+
+        <AdminQuoteMovieFilter
+          v-model:movie="selectedMovie"
+          v-model:quote="selectedQuote"
+          :quotes="quotes"
+        />
       </div>
 
       <!-- EN-TÊTE DU TABLEAU -->
@@ -252,8 +252,8 @@ onMounted(() => {
                   }}
                 </p>
 
-                <button v-if="search || selectedStatus" type="button" class="reset-button"
-                  @click="search = ''; selectedStatus = ''">
+                <button v-if="selectedStatus || selectedMovie || selectedQuote" type="button" class="reset-button"
+                  @click="selectedStatus = ''; selectedMovie = ''; selectedQuote = ''">
                   Réinitialiser les filtres
                 </button>
               </td>
@@ -387,57 +387,21 @@ onMounted(() => {
 ======================================== */
 
 .filters {
-  display: flex;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
   gap: 12px;
   margin-bottom: 22px;
 }
 
-.search-field {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-  padding-left: 14px;
-  border: 1px solid #DEDCD3;
-  border-radius: 9px;
-  background: #FAF9F5;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.search-field:focus-within,
 .status-filter:focus {
   border-color: #739C91;
   box-shadow: 0 0 0 3px rgb(115 156 145 / 15%);
   outline: none;
 }
 
-.search-field>span {
-  flex-shrink: 0;
-  color: #6B706D;
-  font-size: 23px;
-}
-
-.search-field input {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  padding: 13px 14px 13px 10px;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: #212121;
-  font: inherit;
-  font-size: 13px;
-}
-
-.search-field input::placeholder {
-  color: #929792;
-}
-
 .status-filter {
   box-sizing: border-box;
-  width: 200px;
+  width: 100%;
   min-width: 0;
   padding: 13px 14px;
   border: 1px solid #DEDCD3;
@@ -702,11 +666,13 @@ tbody tr:hover {
 
 @media (max-width: 900px) {
   .filters {
-    flex-direction: column;
+    grid-template-columns: 160px minmax(0, 1fr);
   }
+}
 
-  .status-filter {
-    width: 100%;
+@media (max-width: 640px) {
+  .filters {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
