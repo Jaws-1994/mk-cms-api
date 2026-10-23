@@ -41,6 +41,28 @@ const filteredUsers = computed(() => {
       return matchesSearch && matchesRole;
     })
     .sort((a, b) => {
+
+      // Tri par date de création
+      if (
+        selectedSort.value === "date-desc" ||
+        selectedSort.value === "date-asc"
+      ) {
+        const dateA = a.user_created_at
+          ? new Date(String(a.user_created_at).replace(" ", "T")).getTime()
+          : 0;
+
+        const dateB = b.user_created_at
+          ? new Date(String(b.user_created_at).replace(" ", "T")).getTime()
+          : 0;
+
+        return selectedSort.value === "date-desc"
+          ? dateB - dateA
+          : dateA - dateB;
+      }
+
+
+
+
       // Classement selon le score
       if (selectedSort.value === "score-desc") {
         const scoreDifference =
@@ -96,6 +118,28 @@ const loadUsers = async () => {
     isLoading.value = false;
   }
 };
+
+// ========================================
+// AFFICHAGE DE LA DATE DE CRÉATION
+// ========================================
+
+
+const formatCreatedAt = (date) => {
+  if (!date) return "—";
+
+  // MySQL peut renvoyer une date au format YYYY-MM-DD HH:mm:ss.
+  const normalizedDate = String(date).replace(" ", "T");
+  const parsedDate = new Date(normalizedDate);
+
+  if (Number.isNaN(parsedDate.getTime())) return "—";
+
+  return new Intl.DateTimeFormat("fr-BE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(parsedDate);
+};
+
 
 
 
@@ -309,12 +353,8 @@ onMounted(loadUsers);
         <div class="search-wrapper">
           <span class="search-icon" aria-hidden="true">⌕</span>
 
-          <input
-            v-model="search"
-            type="search"
-            placeholder="Rechercher un pseudo ou un e-mail..."
-            aria-label="Rechercher un utilisateur"
-          />
+          <input v-model="search" type="search" placeholder="Rechercher un pseudo ou un e-mail..."
+            aria-label="Rechercher un utilisateur" />
         </div>
 
         <select v-model="selectedRole" aria-label="Filtrer par rôle">
@@ -327,6 +367,8 @@ onMounted(loadUsers);
           <option value="default">Tri par défaut</option>
           <option value="score-desc">Meilleurs scores</option>
           <option value="score-asc">Scores les plus faibles</option>
+          <option value="date-desc">Plus récents</option>
+          <option value="date-asc">Plus anciens</option>
         </select>
       </div>
 
@@ -357,8 +399,8 @@ onMounted(loadUsers);
                 <th scope="col">E-mail</th>
                 <th scope="col">Rôle</th>
                 <th scope="col">Score</th>
-                <th scope="col">Date de création</th>
                 <th scope="col">Statut</th>
+                <th scope="col">Date de création</th>
                 <th scope="col">Action</th>
               </tr>
             </thead>
@@ -394,6 +436,11 @@ onMounted(loadUsers);
                   </span>
                 </td>
 
+                <!-- Date de création du compte -->
+                <td class="created-at">
+                  {{ formatCreatedAt(user.user_created_at) }}
+                </td>
+
                 <!-- Action de blocage -->
                 <td>
                   <button type="button" class="block-button" :class="Number(user.user_is_blocked) === 1 ? 'unblock' : 'block'
@@ -418,7 +465,7 @@ onMounted(loadUsers);
 
               <!-- Aucun résultat -->
               <tr v-if="filteredUsers.length === 0">
-                <td colspan="6" class="empty-state">
+                <td colspan="7" class="empty-state">
                   <span class="empty-icon">⌕</span>
 
                   <p>
@@ -434,10 +481,10 @@ onMounted(loadUsers);
                     selectedRole !== 'all' ||
                     selectedSort !== 'default'
                   " type="button" class="clear-filters" @click="
-                      search = '';
-                    selectedRole = 'all';
-                    selectedSort = 'default';
-                    ">
+                    search = '';
+                  selectedRole = 'all';
+                  selectedSort = 'default';
+                  ">
                     Réinitialiser les filtres
                   </button>
                 </td>
@@ -998,6 +1045,7 @@ tbody tr:not(:last-child):hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -1086,5 +1134,13 @@ tbody tr:not(:last-child):hover {
 .delete-button:disabled {
   opacity: 0.6;
   cursor: wait;
+}
+
+
+.created-at {
+  color: #6b706d;
+  font-size: 12px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 </style>
