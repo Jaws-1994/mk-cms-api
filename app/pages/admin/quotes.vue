@@ -99,17 +99,9 @@ const formatStatus = (status) => {
 const statusClass = (status) => {
   const value = String(status || '').toLowerCase()
 
-  if (['published', 'published ', 'active', 'actif', 'published'].includes(value)) {
-    return 'status-published'
-  }
-
-  if (['draft', 'brouillon', 'pending', 'en_attente'].includes(value)) {
-    return 'status-pending'
-  }
-
-  if (['archived', 'inactive', 'inactif'].includes(value)) {
-    return 'status-archived'
-  }
+  if (value === 'approved') return 'status-published'
+  if (value === 'pending') return 'status-pending'
+  if (value === 'rejected') return 'status-archived'
 
   return 'status-default'
 }
@@ -182,11 +174,9 @@ onMounted(() => {
 
         <select v-model="selectedStatus" aria-label="Filtrer par statut" class="status-filter">
           <option value="">Tous les statuts</option>
-
-          <option v-for="status in [...new Set(quotes.map(q => q.quote_status).filter(Boolean))]" :key="status"
-            :value="status">
-            {{ formatStatus(status) }}
-          </option>
+          <option value="pending">En attente</option>
+          <option value="approved">Approuvées</option>
+          <option value="rejected">Rejetées</option>
         </select>
       </div>
 
@@ -207,6 +197,7 @@ onMounted(() => {
             <tr>
               <th>Citation</th>
               <th>Film associé</th>
+              <th>statut</th>
               <th>Langue</th>
               <th>Date d'ajout</th>
             </tr>
@@ -229,6 +220,12 @@ onMounted(() => {
               </td>
 
               <td>
+                <span class="status-badge" :class="statusClass(quote.quote_status)">
+                  {{ formatStatus(quote.quote_status) }}
+                </span>
+              </td>
+
+              <td>
                 <span class="language-badge">
                   {{ quote.quote_language || '—' }}
                 </span>
@@ -241,7 +238,7 @@ onMounted(() => {
 
             <!-- AUCUN RÉSULTAT -->
             <tr v-if="filteredQuotes.length === 0">
-              <td colspan="4" class="empty-state">
+              <td colspan="5" class="empty-state">
                 <span class="empty-icon" aria-hidden="true">⌕</span>
 
                 <p>
