@@ -105,7 +105,7 @@ definePageMeta({
 
 .stat-card p {
   margin: 18px 0 8px;
-  color: #6B706D;
+  color: black;
   font-size: 13px;
 }
 
