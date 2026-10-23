@@ -309,8 +309,12 @@ onMounted(loadUsers);
         <div class="search-wrapper">
           <span class="search-icon" aria-hidden="true">⌕</span>
 
-          <input v-model="search" type="search" placeholder="Rechercher un pseudo ou un e-mail..."
-            aria-label="Rechercher un utilisateur" />
+          <input
+            v-model="search"
+            type="search"
+            placeholder="Rechercher un pseudo ou un e-mail..."
+            aria-label="Rechercher un utilisateur"
+          />
         </div>
 
         <select v-model="selectedRole" aria-label="Filtrer par rôle">
@@ -994,7 +998,6 @@ tbody tr:not(:last-child):hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {

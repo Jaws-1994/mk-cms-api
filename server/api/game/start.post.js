@@ -67,7 +67,7 @@ export default defineEventHandler(async (event) => {
   if (!authenticatedUser && !allCategories) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Connectez-vous pour choisir les catégories',
+      statusMessage: 'Connectez-vous pour choisir les genres',
     })
   }
 
@@ -107,7 +107,7 @@ export default defineEventHandler(async (event) => {
       )
 
       if (genres.length !== genreIds.length) {
-        throw createError({ statusCode: 400, statusMessage: 'Catégorie introuvable' })
+        throw createError({ statusCode: 400, statusMessage: 'Genre introuvable' })
       }
     }
 
@@ -133,7 +133,7 @@ export default defineEventHandler(async (event) => {
     if (quotes.length < QUESTION_COUNT) {
       throw createError({
         statusCode: 422,
-        statusMessage: 'Pas assez de citations approuvées pour ces catégories',
+        statusMessage: 'Pas assez de citations approuvées pour ces genres',
       })
     }
 
@@ -187,8 +187,8 @@ export default defineEventHandler(async (event) => {
         : {
           ID_genre: null,
           genre_name: allCategories
-            ? 'Toutes les catégories'
-            : 'Catégories sélectionnées',
+            ? 'Tous les genres'
+            : 'Genres sélectionnés',
         },
       // Ajout pour identifier toutes les catégories en cas de sélection multiple.
       genres,

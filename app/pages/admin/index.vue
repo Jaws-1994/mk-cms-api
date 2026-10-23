@@ -21,7 +21,7 @@ definePageMeta({
       <div class="stats-grid">
         <article class="stat-card">
           <div class="stat-icon">🏷️</div>
-          <p>Genres de films</p>
+          <p>Genres</p>
           <strong>Classification</strong>
           <NuxtLink to="/admin/categories">
             Gérer les genres →
