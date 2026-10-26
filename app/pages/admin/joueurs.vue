@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 const updatingUserId = ref(null);
 const actionError = ref("");
 const deletingUserId = ref(null);
@@ -19,6 +19,8 @@ const selectedRole = ref("all");
 const isLoading = ref(true);
 const errorMessage = ref("");
 const selectedSort = ref("default");
+const currentPage = ref(1);
+const pageSize = 25;
 
 // ========================================
 // RECHERCHE ET FILTRE DES UTILISATEURS
@@ -85,6 +87,20 @@ const filteredUsers = computed(() => {
       // Puis ordre alphabétique
       return (a.user_pseudo || "").localeCompare(b.user_pseudo || "", "fr");
     });
+});
+
+const paginatedUsers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize;
+  return filteredUsers.value.slice(start, start + pageSize);
+});
+
+watch([search, selectedRole, selectedSort], () => {
+  currentPage.value = 1;
+});
+
+watch(filteredUsers, () => {
+  const lastPage = Math.max(1, Math.ceil(filteredUsers.value.length / pageSize));
+  if (currentPage.value > lastPage) currentPage.value = lastPage;
 });
 
 // ========================================
@@ -406,7 +422,7 @@ onMounted(loadUsers);
             </thead>
 
             <tbody>
-              <tr v-for="user in filteredUsers" :key="user.ID_user">
+              <tr v-for="user in paginatedUsers" :key="user.ID_user">
                 <td class="pseudo">
                   {{ user.user_pseudo || "Sans pseudo" }}
                 </td>
@@ -493,13 +509,19 @@ onMounted(loadUsers);
           </table>
         </div>
 
+        <AdminPagination
+          v-model:current-page="currentPage"
+          :total-items="filteredUsers.length"
+          :page-size="pageSize"
+        />
+
         <!-- Pied du tableau -->
         <footer class="table-footer">
           <p class="results-count">
-            <strong>{{ filteredUsers.length }}</strong>
+            <strong>{{ paginatedUsers.length }}</strong>
             utilisateur(s) affiché(s)
             <span class="results-separator">/</span>
-            {{ users.length }} au total
+            {{ filteredUsers.length }} résultat(s)
           </p>
 
           <button v-if="search || selectedRole !== 'all'" type="button" class="clear-filters" @click="
