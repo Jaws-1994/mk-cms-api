@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 
 definePageMeta({
   layout: 'admin',
@@ -15,6 +15,8 @@ const selectedQuote = ref('')
 const isLoading = ref(true)
 const errorMessage = ref('')
 const loaded = ref(false);
+const currentPage = ref(1)
+const pageSize = 25
 
 // ========================================
 // FILTRAGE DES CITATIONS
@@ -36,6 +38,20 @@ const filteredQuotes = computed(() => {
 
     return matchesStatus && matchesMovie && matchesQuote
   })
+})
+
+const paginatedQuotes = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredQuotes.value.slice(start, start + pageSize)
+})
+
+watch([selectedStatus, selectedMovie, selectedQuote], () => {
+  currentPage.value = 1
+})
+
+watch(filteredQuotes, () => {
+  const lastPage = Math.max(1, Math.ceil(filteredQuotes.value.length / pageSize))
+  if (currentPage.value > lastPage) currentPage.value = lastPage
 })
 
 // ========================================
@@ -200,7 +216,7 @@ onMounted(() => {
           </thead>
 
           <tbody>
-            <tr v-for="quote in filteredQuotes" :key="quote.ID_quote">
+            <tr v-for="quote in paginatedQuotes" :key="quote.ID_quote">
 
               <td class="quote-cell">
                 <span class="quote-mark" aria-hidden="true">“</span>
@@ -288,6 +304,11 @@ onMounted(() => {
         </p>
       </div>
 
+      <AdminPagination
+        v-model:current-page="currentPage"
+        :total-items="filteredQuotes.length"
+        :page-size="pageSize"
+      />
 
     </div>
   </section>

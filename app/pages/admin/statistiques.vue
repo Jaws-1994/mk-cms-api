@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 
 definePageMeta({
   layout: 'admin',
@@ -14,6 +14,8 @@ const search = ref('')
 const sortBy = ref('times_asked')
 const isLoading = ref(true)
 const errorMessage = ref('')
+const currentPage = ref(1)
+const pageSize = 25
 
 // ========================================
 // CHARGEMENT DES CITATIONS
@@ -116,6 +118,20 @@ const filteredQuotes = computed(() => {
 
       return Number(b.times_asked || 0) - Number(a.times_asked || 0)
     })
+})
+
+const paginatedQuotes = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredQuotes.value.slice(start, start + pageSize)
+})
+
+watch([search, sortBy], () => {
+  currentPage.value = 1
+})
+
+watch(filteredQuotes, () => {
+  const lastPage = Math.max(1, Math.ceil(filteredQuotes.value.length / pageSize))
+  if (currentPage.value > lastPage) currentPage.value = lastPage
 })
 
 function getSuccessRate(quote) {
@@ -248,7 +264,7 @@ onMounted(() => {
             </thead>
 
             <tbody>
-              <tr v-for="quote in filteredQuotes" :key="quote.ID_quote">
+              <tr v-for="quote in paginatedQuotes" :key="quote.ID_quote">
                 <td class="quote-cell">
                   <strong>{{ quote.quote_text || 'Citation sans texte' }}</strong>
                   <span class="movie-name">{{ quote.movie_title || 'Film inconnu' }}</span>
@@ -336,6 +352,11 @@ onMounted(() => {
         </div>
 
 
+        <AdminPagination
+          v-model:current-page="currentPage"
+          :total-items="filteredQuotes.length"
+          :page-size="pageSize"
+        />
       </article>
     </template>
   </section>
